@@ -264,3 +264,61 @@ st.plotly_chart(fig5, use_container_width=True)
 st.caption(
     "💡 **이 그래프로 알 수 있는 것:** 연중 어떤 월(달)에 극장 방문 관객 수가 가장 많았는지 월별 총 수치를 직관적으로 비교하여 영화 시장의 월별 시즌성(성수기/비수기)을 파악할 수 있습니다."
 )
+
+st.divider()  # 구역 구분선
+
+
+# ==========================================
+# [여섯 번째 구역: 캘린더 히트맵 (월/주차 x 요일)]
+# ==========================================
+st.header("📌 6. 요일 및 월별 관객 분포 히트맵")
+
+# 1) 히트맵 표현을 위한 날짜 관련 파라미터 추출
+heatmap_df = daily_total_df.copy()
+
+# 요일 이름 추출 (한글 표기)
+day_names = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+heatmap_df["요일"] = heatmap_df["기준일자"].dt.dayofweek.map(
+    lambda x: day_names[x]
+)
+
+# YYYY-MM 포맷 및 날짜 문자열(YYYY-MM-DD) 준비
+heatmap_df["월"] = heatmap_df["기준일자"].dt.strftime("%Y-%m")
+heatmap_df["날짜문자열"] = heatmap_df["기준일자"].dt.strftime("%Y-%m-%d")
+
+# 2) Plotly density_heatmap을 이용한 히트맵 생성
+fig6 = px.density_heatmap(
+    heatmap_df,
+    x="월",
+    y="요일",
+    z="해당일관객수",
+    histfunc="sum",
+    title="월별 × 요일별 관객수 집계 히트맵",
+    color_continuous_scale="Reds",  # 색이 진할수록 관객 수가 많음을 표현
+    category_orders={"요일": day_names},  # 월요일부터 일요일 순서로 Y축 고정
+    hover_data={
+        "날짜문자열": True,
+        "해당일관객수": ":,명",
+        "월": False,
+        "요일": False,
+    },
+)
+
+# 3) 툴팁(마우스 오버) 레이블 및 축 디자인 설정
+fig6.update_traces(
+    hovertemplate="<b>날짜: %{customdata[0]}</b><br>요일: %{y}<br>총 관객수: %{z:,}명<extra></extra>"
+)
+
+fig6.update_layout(
+    xaxis_title="연-월",
+    yaxis_title="요일",
+    coloraxis_colorbar=dict(title="관객수(명)"),
+)
+
+# Streamlit 화면에 그래프 출력
+st.plotly_chart(fig6, use_container_width=True)
+
+# 그래프 하단 설명 문구
+st.caption(
+    "💡 **이 그래프로 알 수 있는 것:** 요일과 월별로 관객 쏠림 현상을 시각적으로 비교할 수 있으며, 마우스를 올리면 정확한 날짜(YYYY-MM-DD)와 총 관객수를 함께 확인할 수 있습니다."
+)
