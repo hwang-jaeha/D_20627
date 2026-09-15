@@ -218,3 +218,49 @@ st.plotly_chart(fig4, use_container_width=True)
 st.caption(
     "💡 **이 그래프로 알 수 있는 것:** 주말과 평일 간의 심한 관객수 변동(노이즈)을 평탄화(7일 이동평균)하여, 전체 극가장 관객수의 전반적인 시장 트렌드와 성수기·비수기 흐름을 명확히 파악할 수 있습니다."
 )
+
+st.divider()  # 구역 구분선
+
+
+# ==========================================
+# [다섯 번째 구역: 월별 전체 관객수 합계 막대그래프]
+# ==========================================
+st.header("📌 5. 월별 박스오피스 총 관객수 비교")
+
+# 1) '기준일자'를 기반으로 '연-월(YYYY-MM)' 컬럼 생성
+daily_total_df["연월"] = daily_total_df["기준일자"].dt.to_period("M").astype(str)
+
+# 2) 월 단위로 묶어서 일별 총관객수를 합산
+monthly_total_df = (
+    daily_total_df.groupby("연월")["해당일관객수"]
+    .sum()
+    .reset_index()
+    .rename(columns={"해당일관객수": "월별총관객수"})
+)
+
+# 3) Plotly를 사용하여 월별 막대그래프 생성
+fig5 = px.bar(
+    monthly_total_df,
+    x="연월",
+    y="월별총관객수",
+    title="월별 극장가 총 관객수 집계",
+    text_auto=".2s",  # 막대 상단에 간략화된 수치 레이블 표시 (예: 1.2M)
+)
+
+# 그래프 레이아웃 커스텀
+fig5.update_layout(
+    xaxis_title="월(Year-Month)",
+    yaxis_title="총 관객수(명)",
+    xaxis=dict(type="category"),  # 월 항목이 문자열로 깔끔하게 정렬되도록 지정
+)
+
+# 막대 색상 및 디자인 설정
+fig5.update_traces(marker_color="#2b5c8f")
+
+# Streamlit 화면에 그래프 출력
+st.plotly_chart(fig5, use_container_width=True)
+
+# 그래프 하단 설명 문구
+st.caption(
+    "💡 **이 그래프로 알 수 있는 것:** 연중 어떤 월(달)에 극장 방문 관객 수가 가장 많았는지 월별 총 수치를 직관적으로 비교하여 영화 시장의 월별 시즌성(성수기/비수기)을 파악할 수 있습니다."
+)
