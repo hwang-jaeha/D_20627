@@ -131,7 +131,7 @@ fig3.update_traces(
     line_color="#1f77b4",
 )
 
-# 관객수 합계 TOP 3 날짜에 에어로(화살표) 주석(Annotation) 표시
+# 관객수 합계 TOP 3 날짜에 주석(Annotation) 표시
 for rank, (_, row) in enumerate(top3_days.iterrows(), start=1):
     date_str = row["날짜"].strftime("%Y-%m-%d")
     val = row["일관객"]
@@ -157,7 +157,6 @@ fig3.update_layout(hovermode="x unified")
 
 st.plotly_chart(fig3, use_container_width=True)
 
-# TOP 3 날짜 텍스트 요약
 top3_text_list = [
     f"{i+1}위 {row['날짜'].strftime('%Y-%m-%d')}({row['일관객']:,}명)"
     for i, (_, row) in enumerate(top3_days.iterrows())
@@ -173,9 +172,57 @@ st.info(
 st.divider()
 
 # ==========================================
-# 구역 4: [추가 예정] 추후 새로운 시간 분석 그래프 추가 구역
+# 구역 4: 총 관객수 TOP 10 영화 (가로 막대그래프)
 # ==========================================
-st.header("📌 구역 4: 시간 관련 추가 분석 (예정)")
+st.header("📌 구역 4: 기간 내 누적 관객수 TOP 10 영화")
+
+# 영화별 총 관객수 및 10위권 진입 일수(차트인 일수) 집계
+top10_bar_df = (
+    df.groupby("영화명")
+    .agg(총관객수=("일관객", "sum"), 진입일수=("날짜", "count"))
+    .reset_index()
+    .nlargest(10, "총관객수")
+    # 관객수가 많은 영화가 그래프 상단에 오도록 오름차순 정렬 (Plotly y축 특성 반영)
+    .sort_values("총관객수", ascending=True)
+)
+
+# 가로 막대그래프 생성 (orientation='h')
+fig4 = px.bar(
+    top10_bar_df,
+    x="총관객수",
+    y="영화명",
+    orientation="h",
+    text_auto=",",  # 막대 끝에 총관객수 숫자 표시
+    title="기간 내 일관객 합계 상위 10개 영화",
+    labels={"총관객수": "누적 일관객 합계(명)", "영화명": "영화 제목"},
+    color="총관객수",
+    color_continuous_scale="Viridis",
+)
+
+# hover_data 및 hovertemplate 설정 (10위권 진입 일수 포함)
+fig4.update_traces(
+    customdata=top10_bar_df[["진입일수"]],
+    hovertemplate="<b>영화명:</b> %{y}<br><b>누적 관객수:</b> %{x:,}명<br><b>10위권 진입 일수:</b> %{customdata[0]}일<extra></extra>",
+    textposition="outside",
+)
+
+fig4.update_layout(coloraxis_showscale=False)  # 색상 스케일 바 숨김
+
+st.plotly_chart(fig4, use_container_width=True)
+
+top1_movie = top10_bar_df.iloc[-1]["영화명"]
+top1_days = top10_bar_df.iloc[-1]["진입일수"]
+st.info(
+    "💡 **이 그래프로 알 수 있는 것:** "
+    f"해당 기간 박스오피스를 지배한 최상위 10개 영화의 총 관객 규모를 비교할 수 있으며, 마우스를 올리면 각 영화가 10위권 내에 머물렀던 기간(일수)을 확인할 수 있습니다. (예: 1위 '{top1_movie}' 총 {top1_days}일 차트인)"
+)
+
+st.divider()
+
+# ==========================================
+# 구역 5: [추가 예정] 추후 새로운 시간 분석 그래프 추가 구역
+# ==========================================
+st.header("📌 구역 5: 시간 관련 추가 분석 (예정)")
 st.caption(
     "이곳에 '월별 총 관객수 추이', '요일별 관객 비중' 등 새로운 시간 관련 그래프를 추가할 수 있습니다."
 )
