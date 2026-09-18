@@ -40,7 +40,7 @@ selected_movie = st.selectbox("영화를 선택하세요", movie_list)
 filtered_df = df[df["영화명"] == selected_movie].copy()
 filtered_df["날짜_str"] = filtered_df["날짜"].dt.strftime("%Y-%m-%d")
 
-# 플롯리 도넛 그래프 생성 (hole 파라미터로 도넛 형태 구현)
+# 플롯리 도넛 그래프 생성
 fig1 = px.pie(
     filtered_df,
     names="날짜_str",
@@ -49,16 +49,13 @@ fig1 = px.pie(
     hole=0.4,
 )
 
-# 마우스 오버(Hover) 툴팁 및 표시 형식 설정
 fig1.update_traces(
     hovertemplate="<b>날짜:</b> %{label}<br><b>일관객:</b> %{value:,}명 (%{percent})<extra></extra>",
     textinfo="percent+label",
 )
 
-# 그래프 출력
 st.plotly_chart(fig1, use_container_width=True)
 
-# 그래프 설명 텍스트
 st.info(
     "💡 **이 그래프로 알 수 있는 것:** "
     f"선택한 영화({selected_movie})의 전체 상영 기간 일관객 총합 중 특정 날짜가 차지하는 관객 비중과 집중도를 한눈에 비교할 수 있습니다."
@@ -67,11 +64,10 @@ st.info(
 st.divider()
 
 # ==========================================
-# 구역 2: 누적 일관객 상위 5개 영화의 날짜별 일관객 추이 (선 그래프)
+# 구역 2: 관객수 TOP 5 영화의 날짜별 일관객 추이 (선 그래프)
 # ==========================================
 st.header("📌 구역 2: 관객수 TOP 5 영화의 날짜별 일관객 추이")
 
-# 기간 내 일관객 합계가 가장 큰 상위 5개 영화 추출
 top5_movies = (
     df.groupby("영화명")["일관객"]
     .sum()
@@ -80,10 +76,8 @@ top5_movies = (
     .tolist()
 )
 
-# TOP 5 영화 데이터 필터링
 top5_df = df[df["영화명"].isin(top5_movies)].sort_values("날짜")
 
-# 색상(color) 파라미터로 영화 구분하여 선 그래프 생성
 fig2 = px.line(
     top5_df,
     x="날짜",
@@ -94,7 +88,6 @@ fig2 = px.line(
     markers=True,
 )
 
-# 마우스 오버 툴팁 및 레이아웃 설정
 fig2.update_traces(
     hovertemplate="<b>영화:</b> %{fullData.name}<br><b>날짜:</b> %{x|%Y-%m-%d}<br><b>일관객:</b> %{y:,}명<extra></extra>"
 )
@@ -103,10 +96,8 @@ fig2.update_layout(
     legend_title_text="영화 제목 (클릭 시 토글)",
 )
 
-# 그래프 출력
 st.plotly_chart(fig2, use_container_width=True)
 
-# 그래프 설명 텍스트
 top5_str = ", ".join(top5_movies)
 st.info(
     "💡 **이 그래프로 알 수 있는 것:** "
@@ -116,9 +107,75 @@ st.info(
 st.divider()
 
 # ==========================================
-# 구역 3: [추가 예정] 추후 새로운 시간 분석 그래프 추가 구역
+# 구역 3: 날짜별 Top 10 일관객 합계 추이 (영역 그래프 + TOP 3 주석)
 # ==========================================
-st.header("📌 구역 3: 시간 관련 추가 분석 (예정)")
+st.header("📌 구역 3: 일별 박스오피스 TOP 10 총 관객수 추이")
+
+# 날짜별 10위권 일관객 합계 계산
+daily_total = df.groupby("날짜")["일관객"].sum().reset_index()
+
+# 합계 상위 3일 추출
+top3_days = daily_total.nlargest(3, "일관객")
+
+# 영역 그래프(Area Chart) 생성
+fig3 = px.area(
+    daily_total,
+    x="날짜",
+    y="일관객",
+    title="일별 박스오피스 TOP 10 전체 관객수 합계",
+    labels={"날짜": "날짜", "일관객": "10위권 관객수 합계"},
+)
+
+fig3.update_traces(
+    hovertemplate="<b>날짜:</b> %{x|%Y-%m-%d}<br><b>총 관객수:</b> %{y:,}명<extra></extra>",
+    line_color="#1f77b4",
+)
+
+# 관객수 합계 TOP 3 날짜에 에어로(화살표) 주석(Annotation) 표시
+for rank, (_, row) in enumerate(top3_days.iterrows(), start=1):
+    date_str = row["날짜"].strftime("%Y-%m-%d")
+    val = row["일관객"]
+
+    fig3.add_annotation(
+        x=row["날짜"],
+        y=val,
+        text=f"<b>{rank}위: {date_str}</b><br>({val:,}명)",
+        showarrow=True,
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=1.5,
+        arrowcolor="#d62728",
+        ax=0,
+        ay=-40,
+        bgcolor="rgba(255, 255, 255, 0.85)",
+        bordercolor="#d62728",
+        borderwidth=1,
+        font=dict(size=11, color="black"),
+    )
+
+fig3.update_layout(hovermode="x unified")
+
+st.plotly_chart(fig3, use_container_width=True)
+
+# TOP 3 날짜 텍스트 요약
+top3_text_list = [
+    f"{i+1}위 {row['날짜'].strftime('%Y-%m-%d')}({row['일관객']:,}명)"
+    for i, (_, row) in enumerate(top3_days.iterrows())
+]
+top3_summary = ", ".join(top3_text_list)
+
+st.info(
+    "💡 **이 그래프로 알 수 있는 것:** "
+    "전체 극장가의 관객 유입 규모(시장 파이)의 성수기와 비수기를 한눈에 볼 수 있으며, "
+    f"가장 많은 관객이 방문한 상위 3개 날짜[{top3_summary}]를 직관적으로 확인할 수 있습니다."
+)
+
+st.divider()
+
+# ==========================================
+# 구역 4: [추가 예정] 추후 새로운 시간 분석 그래프 추가 구역
+# ==========================================
+st.header("📌 구역 4: 시간 관련 추가 분석 (예정)")
 st.caption(
     "이곳에 '월별 총 관객수 추이', '요일별 관객 비중' 등 새로운 시간 관련 그래프를 추가할 수 있습니다."
 )
