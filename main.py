@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
 st.set_page_config(page_title="영화 데이터 그래프 도감 2", layout="wide")
@@ -51,7 +52,6 @@ fig_treemap = px.treemap(
     labels={'movieNm': '영화명', 'total_audi': '총 관객수', 'genre': '장르'}
 )
 
-# 마우스 호버 시 영화명과 총 관객수가 표시되도록 설정
 fig_treemap.update_traces(
     hovertemplate="<b>%{label}</b><br>총 관객수: %{value:,}명<extra></extra>"
 )
@@ -61,3 +61,35 @@ st.plotly_chart(fig_treemap, use_container_width=True)
 st.markdown("---")
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.info("각 장르가 전체 총 관객수에서 차지하는 비중뿐만 아니라, 특정 장르 내에서 어떤 영화가 관객수를 주로 견인했는지 직관적으로 비교할 수 있습니다.")
+
+# 세 번째 그래프: 총 관객수 히스토그램
+st.markdown("---")
+st.subheader('3. 총 관객수 히스토그램')
+
+fig_hist = px.histogram(
+    df,
+    x='total_audi',
+    nbins=20,
+    labels={'total_audi': '총 관객수'},
+)
+fig_hist.update_layout(yaxis_title="영화 수")
+st.plotly_chart(fig_hist, use_container_width=True)
+
+# 최다 관객 영화 계산
+top_movie_row = df.loc[df['total_audi'].idxmax()]
+top_movie_name = top_movie_row['movieNm']
+top_movie_audi = top_movie_row['total_audi']
+
+# 가장 많은 영화가 집중된 관객수 구간 계산
+counts, bin_edges = np.histogram(df['total_audi'], bins=20)
+max_bin_idx = counts.argmax()
+bin_start = int(bin_edges[max_bin_idx])
+bin_end = int(bin_edges[max_bin_idx + 1])
+
+st.markdown("---")
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.info(
+    f"대부분의 영화는 **{bin_start:,}명 ~ {bin_end:,}명** 구간에 밀집되어 있으며, "
+    f"가장 많은 관객을 동원한 영화는 **'{top_movie_name}'** (총 {top_movie_audi:,}명)입니다. "
+    f"이를 통해 소수의 메가 히트작이 상위 관객수를 끌어올리는 오른쪽으로 치우친 분포 양상을 확인할 수 있습니다."
+)
