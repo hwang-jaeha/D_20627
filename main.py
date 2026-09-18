@@ -28,32 +28,32 @@ df = load_data()
 st.divider()
 
 # ==========================================
-# 구역 1: 영화별 일관객 변화 추이
+# 구역 1: 영화별 일관객 점유율 (도넛 그래프)
 # ==========================================
-st.header("📌 구역 1: 영화별 일관객 변화 추이")
+st.header("📌 구역 1: 영화별 일관객 점유율")
 
 # 영화 선택 드롭다운 (영화명 기준 오름차순 정렬)
 movie_list = sorted(df["영화명"].unique())
 selected_movie = st.selectbox("영화를 선택하세요", movie_list)
 
 # 선택한 영화 데이터 필터링
-filtered_df = df[df["영화명"] == selected_movie].sort_values("날짜")
+filtered_df = df[df["영화명"] == selected_movie].copy()
+filtered_df["날짜_str"] = filtered_df["날짜"].dt.strftime("%Y-%m-%d")
 
-# 플롯리 선 그래프 생성
-fig1 = px.line(
+# 플롯리 도넛 그래프 생성 (hole 파라미터로 도넛 형태 구현)
+fig1 = px.pie(
     filtered_df,
-    x="날짜",
-    y="일관객",
-    title=f"[{selected_movie}] 일별 관객수 변화",
-    labels={"날짜": "날짜", "일관객": "일일 관객수"},
-    markers=True,
+    names="날짜_str",
+    values="일관객",
+    title=f"[{selected_movie}] 날짜별 일관객 비율",
+    hole=0.4,
 )
 
-# 마우스 오버(Hover) 툴팁 설정 및 디자인 조정
+# 마우스 오버(Hover) 툴팁 및 표시 형식 설정
 fig1.update_traces(
-    hovertemplate="<b>날짜:</b> %{x|%Y-%m-%d}<br><b>일관객:</b> %{y:,}명<extra></extra>"
+    hovertemplate="<b>날짜:</b> %{label}<br><b>일관객:</b> %{value:,}명 (%{percent})<extra></extra>",
+    textinfo="percent+label",
 )
-fig1.update_layout(hovermode="x unified")
 
 # 그래프 출력
 st.plotly_chart(fig1, use_container_width=True)
@@ -61,7 +61,7 @@ st.plotly_chart(fig1, use_container_width=True)
 # 그래프 설명 텍스트
 st.info(
     "💡 **이 그래프로 알 수 있는 것:** "
-    f"선택한 영화({selected_movie})의 상영 기간에 따른 흥행 추이와 관객수가 가장 집중된 시점을 한눈에 파악할 수 있습니다."
+    f"선택한 영화({selected_movie})의 전체 상영 기간 일관객 총합 중 특정 날짜가 차지하는 관객 비중과 집중도를 한눈에 비교할 수 있습니다."
 )
 
 st.divider()
