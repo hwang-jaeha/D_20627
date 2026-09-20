@@ -93,3 +93,27 @@ st.info(
     f"가장 많은 관객을 동원한 영화는 **'{top_movie_name}'** (총 {top_movie_audi:,}명)입니다. "
     f"이를 통해 소수의 메가 히트작이 상위 관객수를 끌어올리는 오른쪽으로 치우친 분포 양상을 확인할 수 있습니다."
 )
+
+# 네 번째 그래프: 개봉일 스크린수 vs 총 관객수 산점도
+st.markdown("---")
+st.subheader('4. 개봉일 스크린수와 총 관객수의 관계')
+
+fig_scatter = px.scatter(
+    df,
+    x='first_scrn',
+    y='total_audi',
+    color='genre',
+    hover_name='movieNm',
+    hover_data={'first_scrn': ':,d', 'total_audi': ':,d', 'genre': True},
+    labels={
+        'first_scrn': '개봉일 스크린수',
+        'total_audi': '총 관객수',
+        'genre': '장르'
+    }
+)
+
+st.plotly_chart(fig_scatter, use_container_width=True)
+
+st.markdown("---")
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.info("개봉 첫날 확보한 스크린수가 최종 총 관객수에 얼마나 영향을 미치는지 양의 상관관계를 파악할 수 있으며, 장르별 스크린 확보 수준과 흥행 성과의 분포 양상을 비교할 수 있습니다.")
