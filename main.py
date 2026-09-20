@@ -210,3 +210,25 @@ st.plotly_chart(fig_sunburst, use_container_width=True)
 st.markdown("---")
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.info("각 제작 국가가 전체 박스오피스 영화 편수에서 차지하는 비중과, 국가별로 주로 제작되어 공급되는 장르의 구성 계층 구조를 한눈에 파악할 수 있습니다.")
+
+# 여덟 번째 그래프: 10위권 체류 기간 vs 총 관객수 산점도
+st.markdown("---")
+st.subheader('8. 10위권에 오래 머문 영화는 총 관객도 많은가')
+
+fig_top10_scatter = px.scatter(
+    df,
+    x='days_in_top10',
+    y='total_audi',
+    hover_name='movieNm',
+    hover_data={'days_in_top10': ':,d', 'total_audi': ':,d'},
+    labels={
+        'days_in_top10': '10위권에 머문 날수',
+        'total_audi': '총 관객수'
+    }
+)
+
+st.plotly_chart(fig_top10_scatter, use_container_width=True)
+
+st.markdown("---")
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.info("10위권 순위 내 장기 체류 일수와 최종 누적 관객수 사이의 뚜렷한 양의 상관관계를 확인하여, 흥행 유지력(롱런)이 총 관객수 확보의 핵심 요인임을 파악할 수 있습니다.").
