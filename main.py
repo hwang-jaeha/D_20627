@@ -123,8 +123,8 @@ st.markdown("---")
 st.subheader('5. 주요 장르별 총 관객수 분포 (상자 그림)')
 
 # 영화가 10편 이상인 장르 필터링
-genre_counts = df['genre'].value_counts()
-major_genres = genre_counts[genre_counts >= 10].index
+genre_counts_series = df['genre'].value_counts()
+major_genres = genre_counts_series[genre_counts_series >= 10].index
 df_major = df[df['genre'].isin(major_genres)]
 
 fig_box = px.box(
@@ -182,3 +182,31 @@ st.plotly_chart(fig_bubble, use_container_width=True)
 st.markdown("---")
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.info("개봉일 스크린수(X축)와 최종 총 관객수(Y축)에 더해, 버블 크기(개봉 첫 주 관객수)를 함께 시각화함으로써 초반 흥행 기세가 최종 성적으로 이어졌는지 아니면 장기 입소문을 타며 역주행했는지 한 번에 종합적으로 비교·분석할 수 있습니다.")
+
+# 일곱 번째 그래프: 제작 국가 -> 장르 선버스트 (칸 크기: 영화 편수)
+st.markdown("---")
+st.subheader('7. 제작 국가 및 장르 계층 구조 (선버스트)')
+
+# 제작 국가 및 장르별 영화 편수 집계
+nation_genre_df = df.groupby(['nation', 'genre']).size().reset_index(name='movie_count')
+
+fig_sunburst = px.sunburst(
+    nation_genre_df,
+    path=['nation', 'genre'],
+    values='movie_count',
+    labels={
+        'nation': '제작 국가',
+        'genre': '장르',
+        'movie_count': '영화 편수'
+    }
+)
+
+fig_sunburst.update_traces(
+    hovertemplate="<b>%{label}</b><br>영화 편수: %{value}편<extra></extra>"
+)
+
+st.plotly_chart(fig_sunburst, use_container_width=True)
+
+st.markdown("---")
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.info("각 제작 국가가 전체 박스오피스 영화 편수에서 차지하는 비중과, 국가별로 주로 제작되어 공급되는 장르의 구성 계층 구조를 한눈에 파악할 수 있습니다.")
