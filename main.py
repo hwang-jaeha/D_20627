@@ -20,7 +20,7 @@ df = load_data()
 
 st.markdown("---")
 
-# 첫 번째 그래프: 장르별 영화 편수 도넛 그래프
+# 1. 장르별 영화 편수 도넛 그래프
 st.subheader('1. 장르별 영화 편수 분포')
 
 genre_counts = df['genre'].value_counts().reset_index()
@@ -40,7 +40,7 @@ st.markdown("---")
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.info("박스오피스 상위권에 가장 많이 포진해 있는 주력 영화 장르가 무엇인지, 전체 영화 중 특정 장르가 차지하는 비중을 직관적으로 파악할 수 있습니다.")
 
-# 두 번째 그래프: 장르-영화 트리맵 (총 관객수 기준)
+# 2. 장르-영화 트리맵 (총 관객수 기준)
 st.markdown("---")
 st.subheader('2. 장르 및 영화별 총 관객수 분포 (트리맵)')
 
@@ -62,7 +62,7 @@ st.markdown("---")
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.info("각 장르가 전체 총 관객수에서 차지하는 비중뿐만 아니라, 특정 장르 내에서 어떤 영화가 관객수를 주로 견인했는지 직관적으로 비교할 수 있습니다.")
 
-# 세 번째 그래프: 총 관객수 히스토그램
+# 3. 총 관객수 히스토그램
 st.markdown("---")
 st.subheader('3. 총 관객수 히스토그램')
 
@@ -75,12 +75,11 @@ fig_hist = px.histogram(
 fig_hist.update_layout(yaxis_title="영화 수")
 st.plotly_chart(fig_hist, use_container_width=True)
 
-# 최다 관객 영화 계산
+# 최다 관객 영화 및 빈도 최다 구간 계산
 top_movie_row = df.loc[df['total_audi'].idxmax()]
 top_movie_name = top_movie_row['movieNm']
 top_movie_audi = top_movie_row['total_audi']
 
-# 가장 많은 영화가 집중된 관객수 구간 계산
 counts, bin_edges = np.histogram(df['total_audi'], bins=20)
 max_bin_idx = counts.argmax()
 bin_start = int(bin_edges[max_bin_idx])
@@ -94,7 +93,7 @@ st.info(
     f"이를 통해 소수의 메가 히트작이 상위 관객수를 끌어올리는 오른쪽으로 치우친 분포 양상을 확인할 수 있습니다."
 )
 
-# 네 번째 그래프: 개봉일 스크린수 vs 총 관객수 산점도
+# 4. 개봉일 스크린수 vs 총 관객수 산점도
 st.markdown("---")
 st.subheader('4. 개봉일 스크린수와 총 관객수의 관계')
 
@@ -118,11 +117,10 @@ st.markdown("---")
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.info("개봉 첫날 확보한 스크린수가 최종 총 관객수에 얼마나 영향을 미치는지 양의 상관관계를 파악할 수 있으며, 장르별 스크린 확보 수준과 흥행 성과의 분포 양상을 비교할 수 있습니다.")
 
-# 다섯 번째 그래프: 영화 10편 이상인 장르의 총 관객수 박스플롯
+# 5. 주요 장르별 총 관객수 박스플롯
 st.markdown("---")
 st.subheader('5. 주요 장르별 총 관객수 분포 (상자 그림)')
 
-# 영화가 10편 이상인 장르 필터링
 genre_counts_series = df['genre'].value_counts()
 major_genres = genre_counts_series[genre_counts_series >= 10].index
 df_major = df[df['genre'].isin(major_genres)]
@@ -134,7 +132,7 @@ fig_box = px.box(
     color='genre',
     hover_name='movieNm',
     hover_data={'total_audi': ':,d', 'genre': False},
-    points='outliers',  # 이상치(상자 밖점) 표기
+    points='outliers',
     labels={
         'genre': '장르',
         'total_audi': '총 관객수'
@@ -151,7 +149,7 @@ st.markdown("---")
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.info("10편 이상 제작된 주요 장르 간의 관객수 중앙값과 변동성(분포 범위)을 비교할 수 있으며, 상자 밖의 이상치 점을 통해 해당 장르의 대표 대행진 흥행작들을 한눈에 확인할 수 있습니다.")
 
-# 여섯 번째 그래프: 버블 차트 (개봉일 스크린수 vs 총 관객수 & 점 크기: 개봉 첫 주 관객수)
+# 6. 버블 차트
 st.markdown("---")
 st.subheader('6. 스크린수, 총 관객수, 첫 주 관객수의 다차원 관계 (버블 차트)')
 
@@ -183,11 +181,10 @@ st.markdown("---")
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.info("개봉일 스크린수(X축)와 최종 총 관객수(Y축)에 더해, 버블 크기(개봉 첫 주 관객수)를 함께 시각화함으로써 초반 흥행 기세가 최종 성적으로 이어졌는지 아니면 장기 입소문을 타며 역주행했는지 한 번에 종합적으로 비교·분석할 수 있습니다.")
 
-# 일곱 번째 그래프: 제작 국가 -> 장르 선버스트 (칸 크기: 영화 편수)
+# 7. 선버스트
 st.markdown("---")
 st.subheader('7. 제작 국가 및 장르 계층 구조 (선버스트)')
 
-# 제작 국가 및 장르별 영화 편수 집계
 nation_genre_df = df.groupby(['nation', 'genre']).size().reset_index(name='movie_count')
 
 fig_sunburst = px.sunburst(
@@ -211,11 +208,48 @@ st.markdown("---")
 st.markdown("**이 그래프로 알 수 있는 것**")
 st.info("각 제작 국가가 전체 박스오피스 영화 편수에서 차지하는 비중과, 국가별로 주로 제작되어 공급되는 장르의 구성 계층 구조를 한눈에 파악할 수 있습니다.")
 
-# 여덟 번째 그래프: 10위권 체류 기간 vs 총 관객수 산점도
+# 8. 질문 1: 10위권에 머문 날수는 대개 며칠쯤인가 (히스토그램)
 st.markdown("---")
-st.subheader('8. 10위권에 오래 머문 영화는 총 관객도 많은가')
+st.subheader('8. 10위권에 머문 날수는 대개 며칠쯤인가')
 
-fig_top10_scatter = px.scatter(
+fig_q1 = px.histogram(
+    df,
+    x='days_in_top10',
+    nbins=15,
+    labels={'days_in_top10': '10위권 체류 일수'},
+)
+fig_q1.update_layout(yaxis_title="영화 수")
+st.plotly_chart(fig_q1, use_container_width=True)
+
+st.markdown("---")
+st.markdown("**왜 이 그래프인가**")
+st.info("단일 연속형 변수(체류 일수)의 빈도수 분포와 중심 경향을 확인하여 영화들이 대개 며칠 동안 상위권에 머무는지 파악하기에 히스토그램이 가장 적합합니다.")
+
+# 9. 질문 2: 제작 국가별 영화 편수의 비율은 어떠한가 (파이 차트)
+st.markdown("---")
+st.subheader('9. 제작 국가별 영화 편수의 비율은 어떠한가')
+
+nation_counts = df['nation'].value_counts().reset_index()
+nation_counts.columns = ['nation', 'count']
+
+fig_q2 = px.pie(
+    nation_counts,
+    names='nation',
+    values='count',
+    labels={'nation': '제작 국가', 'count': '영화 편수'}
+)
+fig_q2.update_traces(textposition='inside', textinfo='percent+label')
+st.plotly_chart(fig_q2, use_container_width=True)
+
+st.markdown("---")
+st.markdown("**왜 이 그래프인가**")
+st.info("전체 데이터셋에서 각 제작 국가가 차지하는 상대적인 점유율과 점유 비율(%)을 한눈에 비교하기에 파이 차트(또는 도넛 차트)가 가장 직관적입니다.")
+
+# 10. 질문 3: 10위권에 오래 머문 영화는 총 관객도 많은가 (산점도)
+st.markdown("---")
+st.subheader('10. 10위권에 오래 머문 영화는 총 관객도 많은가')
+
+fig_q3 = px.scatter(
     df,
     x='days_in_top10',
     y='total_audi',
@@ -226,9 +260,8 @@ fig_top10_scatter = px.scatter(
         'total_audi': '총 관객수'
     }
 )
-
-st.plotly_chart(fig_top10_scatter, use_container_width=True)
+st.plotly_chart(fig_q3, use_container_width=True)
 
 st.markdown("---")
-st.markdown("**이 그래프로 알 수 있는 것**")
-st.info("10위권 순위 내 장기 체류 일수와 최종 누적 관객수 사이의 뚜렷한 양의 상관관계를 확인하여, 흥행 유지력(롱런)이 총 관객수 확보의 핵심 요인임을 파악할 수 있습니다.").
+st.markdown("**왜 이 그래프인가**")
+st.info("두 연속형 변수(10위권 체류 일수와 총 관객수) 사이의 상관관계 및 비례 양상을 개별 영화 관점 점으로 추적·확인하기에 산점도가 가장 적합합니다.")
