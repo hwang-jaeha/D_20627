@@ -245,29 +245,23 @@ st.markdown("---")
 st.markdown("**왜 이 그래프인가**")
 st.info("전체 데이터셋에서 각 제작 국가가 차지하는 상대적인 점유율과 점유 비율(%)을 한눈에 비교하기에 파이 차트(또는 도넛 차트)가 가장 직관적입니다.")
 
-# 10. 질문 3: 10위권에 오래 머문 영화는 총 관객도 많은가 (2D 히스토그램 히트맵)
+# 10. 질문 3: 10위권에 오래 머문 영화는 총 관객도 많은가 (산점도)
 st.markdown("---")
 st.subheader('10. 10위권에 오래 머문 영화는 총 관객도 많은가')
 
-fig_q3_heatmap = px.density_heatmap(
+fig_q3 = px.scatter(
     df,
     x='days_in_top10',
     y='total_audi',
-    nbinsx=15,
-    nbinsy=15,
-    color_continuous_scale='Viridis',
+    hover_name='movieNm',
+    hover_data={'days_in_top10': ':,d', 'total_audi': ':,d'},
     labels={
         'days_in_top10': '10위권에 머문 날수',
         'total_audi': '총 관객수'
     }
 )
-
-fig_q3_heatmap.update_layout(
-    coloraxis_colorbar_title="영화 수"
-)
-
-st.plotly_chart(fig_q3_heatmap, use_container_width=True)
+st.plotly_chart(fig_q3, use_container_width=True)
 
 st.markdown("---")
 st.markdown("**왜 이 그래프인가**")
-st.info("두 연속형 변수(10위권 체류 일수와 총 관객수) 구간별로 영화 밀집도를 색상 명암으로 표현하여 관객수와 체류 일수의 밀집 패턴을 직관적으로 보여주기에 히트맵(2D Density Heatmap)이 적합합니다.")
+st.info("두 연속형 변수(10위권 체류 일수와 총 관객수) 사이의 상관관계 및 비례 양상을 개별 영화 관점 점으로 추적·확인하기에 산점도가 가장 적합합니다.")
